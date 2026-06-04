@@ -1,0 +1,3457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TravelSplit AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6fb;
+      color: #111827;
+    }
+
+    .hidden { display: none !important; }
+
+    .auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      background: linear-gradient(135deg, #eff6ff, #f8fafc);
+    }
+
+    .auth-card {
+      width: min(460px, 100%);
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 28px;
+      padding: 30px;
+      box-shadow: 0 18px 60px rgba(15, 23, 42, 0.12);
+    }
+
+    .auth-card h1 { margin: 0 0 8px; font-size: 30px; }
+    .auth-card p { margin: 0 0 22px; color: #6b7280; line-height: 1.45; }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .auth-tab {
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      color: #111827;
+      border-radius: 14px;
+      padding: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .auth-tab.active {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+    }
+
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 330px;
+      background: #111827;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .sidebar h1 { font-size: 22px; margin: 0 0 6px; }
+    .sidebar p { color: #9ca3af; font-size: 13px; margin: 0 0 18px; }
+
+    .user-box {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .user-box strong { display: block; font-size: 14px; margin-bottom: 4px; }
+    .user-box span { display: block; color: #d1d5db; font-size: 12px; margin-bottom: 10px; word-break: break-word; }
+
+    .logout-btn {
+      width: 100%;
+      background: #374151;
+      color: white;
+      padding: 9px 12px;
+      font-size: 12px;
+    }
+
+    .sidebar-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 12px 0 14px;
+    }
+
+    .sidebar-tab {
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: #d1d5db;
+      border-radius: 12px;
+      padding: 9px 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .sidebar-tab.active {
+      background: #2563eb;
+      color: white;
+      border-color: #60a5fa;
+    }
+
+    .trip-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .trip-card {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 14px;
+      padding: 12px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .trip-card:hover { background: #263244; }
+
+    .trip-card.active {
+      border-color: #60a5fa;
+      background: #1e3a5f;
+    }
+
+    .trip-title {
+      font-weight: 700;
+      font-size: 14px;
+      padding-right: 26px;
+    }
+
+    .trip-meta {
+      color: #d1d5db;
+      font-size: 12px;
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+
+    .trip-menu-btn {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      border: none;
+      background: transparent;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+
+    .role-badge {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .role-owner { background: #dbeafe; color: #1d4ed8; }
+    .role-editor { background: #dcfce7; color: #166534; }
+    .role-viewer { background: #fef3c7; color: #92400e; }
+
+    .trip-action-menu {
+      position: fixed;
+      width: 270px;
+      background: white;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+      border-radius: 22px;
+      padding: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      z-index: 2000;
+    }
+
+    .trip-action-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      color: #111827;
+      text-align: left;
+      padding: 13px 14px;
+      border-radius: 14px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .trip-action-item:hover {
+      background: #f3f4f6;
+    }
+
+    .trip-action-icon {
+      width: 24px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .trip-action-divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 8px 0;
+    }
+
+    .delete-action {
+      color: #ef4444;
+      background: white;
+    }
+
+    .delete-action:hover {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    .trip-action-item:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .main {
+      flex: 1;
+      padding: 28px;
+      overflow-y: auto;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #ffffff, #eff6ff);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+      margin-bottom: 22px;
+    }
+
+    .hero h2 { margin: 0 0 8px; font-size: 30px; }
+    .hero p { margin: 0; color: #6b7280; font-size: 15px; }
+
+    .top-actions {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .feature-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 18px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      transition: 0.2s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
+    }
+
+    .feature-card.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .feature-icon { font-size: 24px; margin-bottom: 8px; }
+    .feature-card h3 { margin: 0 0 6px; font-size: 16px; }
+    .feature-card p { margin: 0; font-size: 12px; color: #6b7280; }
+
+    .panel {
+      background: white;
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+      display: none;
+    }
+
+    .panel.active { display: block; }
+    .panel h2 { margin-top: 0; }
+
+    .simple-plan-wrap {
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    .mode-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin: 20px 0 22px;
+    }
+
+    .mode-option {
+      border: 2px solid #e5e7eb;
+      border-radius: 20px;
+      padding: 18px;
+      cursor: pointer;
+      background: #f9fafb;
+      transition: 0.2s;
+    }
+
+    .mode-option:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .mode-option.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .mode-option h3 { margin: 0 0 8px; font-size: 18px; }
+    .mode-option p { margin: 0; color: #6b7280; font-size: 13px; line-height: 1.45; }
+
+    .simple-card, .share-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 22px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+
+    .simple-card h3, .share-card h3 { margin-top: 0; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    input, textarea, select {
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      padding: 12px 13px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .advanced-toggle {
+      width: 100%;
+      background: white;
+      border: 1px solid #d1d5db;
+      color: #111827;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 0 14px;
+    }
+
+    .advanced-box {
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    button {
+      border: none;
+      border-radius: 13px;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary { background: #2563eb; color: white; }
+    .secondary { background: #e5e7eb; color: #111827; }
+    .danger { background: #ef4444; color: white; }
+    .success { background: #16a34a; color: white; }
+
+    .status {
+      margin-top: 14px;
+      color: #2563eb;
+      font-weight: 700;
+    }
+
+    .auth-status {
+      margin-top: 12px;
+      color: #2563eb;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .trip-summary-box {
+      max-width: 880px;
+      margin: 24px auto 0;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .trip-summary-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .trip-summary-header h3 { margin: 0; font-size: 22px; }
+
+    .success-badge {
+      background: #dcfce7;
+      color: #166534;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .summary-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .summary-card .label {
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .summary-card .value {
+      color: #111827;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .next-step-box {
+      margin-top: 18px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      border-radius: 18px;
+      padding: 16px;
+      line-height: 1.5;
+    }
+
+    .result-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 18px;
+      background: #f9fafb;
+      max-height: 360px;
+      overflow-y: auto;
+      margin-bottom: 14px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      margin: 4px 4px 4px 0;
+    }
+
+    .real-data-pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 4px 4px 4px 0;
+    }
+
+    .day-block {
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: #f9fafb;
+    }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .day-header h3 { margin: 0; }
+
+    .day-map-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .activity {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 14px;
+      border-left: 4px solid #2563eb;
+      background: white;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .activity-time {
+      font-weight: 800;
+      color: #1d4ed8;
+      font-size: 13px;
+    }
+
+    .activity-title {
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .activity-meta {
+      color: #6b7280;
+      font-size: 13px;
+      margin-top: 4px;
+      line-height: 1.45;
+    }
+
+    .place-card {
+      margin-top: 12px;
+      border: 1px solid #bfdbfe;
+      background: linear-gradient(135deg, #eff6ff, #ffffff);
+      border-radius: 16px;
+      padding: 13px;
+    }
+
+    .place-card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .place-name {
+      font-weight: 900;
+      color: #111827;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .place-source {
+      background: #dcfce7;
+      color: #166534;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .place-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .place-mini {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 9px;
+    }
+
+    .place-mini-label {
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .place-mini-value {
+      color: #111827;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .small-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .small-actions button {
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .itinerary-top-summary {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .itinerary-top-summary h3 { margin: 0 0 6px; }
+
+    .map-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid #bbf7d0;
+      background: #ecfdf5;
+      color: #166534;
+    }
+
+    .map-link.route {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .map-link.day {
+      border-color: #111827;
+      background: #111827;
+      color: white;
+    }
+
+    .map-link.place {
+      border-color: #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+    }
+
+    .map-link.disabled {
+      border-color: #e5e7eb;
+      background: #f3f4f6;
+      color: #9ca3af;
+      pointer-events: none;
+    }
+
+    .map-note {
+      color: #6b7280;
+      font-size: 12px;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .modal-backdrop.active { display: flex; }
+
+    .modal {
+      background: white;
+      width: min(900px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .expense-card, .template-card, .collab-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 14px;
+      background: #f9fafb;
+      margin-bottom: 10px;
+    }
+
+    .expense-money {
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .converted-money {
+      color: #166534;
+      font-weight: 800;
+    }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .print-link {
+      display: inline-block;
+      text-decoration: none;
+      border-radius: 13px;
+      background: #111827;
+      color: white;
+      padding: 11px 16px;
+      font-weight: 700;
+    }
+
+    .helper-text {
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 1000px) {
+      .app { flex-direction: column; }
+      .sidebar { width: 100%; max-height: 360px; }
+      .top-actions, .mode-row, .form-grid, .summary-grid, .template-grid, .place-grid {
+        grid-template-columns: 1fr;
+      }
+      .activity { grid-template-columns: 1fr; }
+      .trip-summary-header, .day-header, .place-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .day-map-actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <h1>TravelSplit AI</h1>
+      <p>Sign in to save trips, itineraries, expenses, projects, shares, and collaborators under your own account.</p>
+
+      <div class="auth-tabs">
+        <button id="loginTab" class="auth-tab active" onclick="setAuthMode('login')">Login</button>
+        <button id="registerTab" class="auth-tab" onclick="setAuthMode('register')">Register</button>
+      </div>
+
+      <div id="registerNameField" class="field hidden">
+        <label>Name</label>
+        <input id="authName" placeholder="Alex Chen" />
+      </div>
+
+      <div class="field" style="margin-top: 12px;">
+        <label>Email</label>
+        <input id="authEmail" type="email" placeholder="you@example.com" />
+      </div>
+
+      <div class="field" style="margin-top: 12px;">
+        <label>Password</label>
+        <input id="authPassword" type="password" placeholder="At least 6 characters" />
+      </div>
+
+      <div class="btn-row">
+        <button id="authSubmitBtn" class="primary" onclick="submitAuth()">Login</button>
+      </div>
+
+      <div id="authStatus" class="auth-status"></div>
+    </div>
+  </section>
+
+  <div id="appScreen" class="app hidden">
+    <aside class="sidebar">
+      <h1>TravelSplit AI</h1>
+      <p>AI trip planning + itinerary + expenses</p>
+
+      <div class="user-box">
+        <strong id="sidebarUserName">Signed in</strong>
+        <span id="sidebarUserEmail"></span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <div class="sidebar-tabs">
+        <button id="recentTabBtn" class="sidebar-tab active" onclick="setTripListMode('recent')">Recent</button>
+        <button id="sharedTabBtn" class="sidebar-tab" onclick="setTripListMode('shared')">Shared</button>
+        <button id="archivedTabBtn" class="sidebar-tab" onclick="setTripListMode('archived')">Archive</button>
+        <button id="projectsTabBtn" class="sidebar-tab" onclick="setTripListMode('projects')">Projects</button>
+      </div>
+
+      <div class="btn-row" style="margin-bottom: 16px;">
+        <button class="secondary" onclick="refreshSidebar()">Refresh</button>
+      </div>
+
+      <div id="tripList" class="trip-list"></div>
+    </aside>
+
+    <main class="main">
+      <section class="hero">
+        <h2>Plan less, travel smarter.</h2>
+        <p>Start with flights or rough dates, edit your final itinerary, share trips, organize projects, collaborate, and split expenses across currencies.</p>
+      </section>
+
+      <section class="top-actions">
+        <div class="feature-card active" data-panel="planPanel" onclick="showPanel('planPanel')">
+          <div class="feature-icon">1️⃣</div>
+          <h3>Create Trip</h3>
+          <p>Start with flight or dates.</p>
+        </div>
+
+        <div class="feature-card" data-panel="itineraryPanel" onclick="showPanel('itineraryPanel')">
+          <div class="feature-icon">2️⃣</div>
+          <h3>Edit Itinerary</h3>
+          <p>Real places + ratings.</p>
+        </div>
+
+        <div class="feature-card" data-panel="expensesPanel" onclick="showPanel('expensesPanel')">
+          <div class="feature-icon">3️⃣</div>
+          <h3>Track Expenses</h3>
+          <p>Multi-currency spending.</p>
+        </div>
+
+        <div class="feature-card" data-panel="settlementPanel" onclick="showPanel('settlementPanel')">
+          <div class="feature-icon">4️⃣</div>
+          <h3>Split Cost</h3>
+          <p>Settle in one currency.</p>
+        </div>
+
+        <div class="feature-card" data-panel="templatesPanel" onclick="showPanel('templatesPanel')">
+          <div class="feature-icon">5️⃣</div>
+          <h3>Templates</h3>
+          <p>Reuse trip ideas.</p>
+        </div>
+      </section>
+
+      <section id="planPanel" class="panel active">
+        <div class="simple-plan-wrap">
+          <h2>Create Trip</h2>
+          <p class="helper-text">Create the trip first. The full daily schedule will appear in Edit Itinerary, not here.</p>
+
+          <div class="mode-row">
+            <div id="confirmedModeBox" class="mode-option active" onclick="setFlightMode('confirmed')">
+              <h3>✈️ I already have flights</h3>
+              <p>Use flight number and flight date to create a flexible trip plan.</p>
+            </div>
+
+            <div id="estimatedModeBox" class="mode-option" onclick="setFlightMode('estimated')">
+              <h3>🧭 I don't have flights yet</h3>
+              <p>Use destination, start date, and trip length to create an estimated plan.</p>
+            </div>
+          </div>
+
+          <div id="confirmedSimpleFields" class="simple-card">
+            <h3>Flight Basics</h3>
+
+            <div class="form-grid">
+              <div class="field">
+                <label>Flight Number</label>
+                <input id="flightNumber" placeholder="Example: AA169" />
+              </div>
+
+              <div class="field">
+                <label>Flight Date</label>
+                <input id="flightDate" type="date" />
+              </div>
+
+              <div class="field">
+                <label>Destination</label>
+                <input id="confirmedDestination" placeholder="Tokyo / London / Paris" />
+              </div>
+
+              <div class="field">
+                <label>Hotel / Stay Area optional</label>
+                <input id="confirmedHotelArea" placeholder="Shinjuku / Westminster / near city center" />
+              </div>
+
+              <div class="field full">
+                <label>Extra note optional</label>
+                <textarea id="confirmedPrompt" placeholder="Example: I want a relaxed food-focused trip. Please keep the first day light."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div id="estimatedSimpleFields" class="simple-card hidden">
+            <h3>Estimated Trip Basics</h3>
+
+            <div class="form-grid">
+              <div class="field">
+                <label>Destination</label>
+                <input id="estimatedDestination" placeholder="London / Tokyo / New York" />
+              </div>
+
+              <div class="field">
+                <label>Estimated Start Date</label>
+                <input id="startDate" type="date" />
+              </div>
+
+              <div class="field">
+                <label>Trip Length</label>
+                <input id="tripDays" type="number" min="1" placeholder="5" />
+              </div>
+
+              <div class="field">
+                <label>Hotel / Stay Area optional</label>
+                <input id="estimatedHotelArea" placeholder="Near city center / not decided yet" />
+              </div>
+
+              <div class="field full">
+                <label>Extra note optional</label>
+                <textarea id="estimatedPrompt" placeholder="Example: First-time visitor. I want a flexible plan, not too rushed."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <button class="advanced-toggle" onclick="toggleAdvanced()" type="button">
+            <span>Advanced Preferences optional</span>
+            <span id="advancedArrow">▼</span>
+          </button>
+
+          <div id="advancedBox" class="advanced-box hidden">
+            <div class="form-grid">
+              <div class="field">
+                <label>Origin city / airport</label>
+                <input id="origin" placeholder="Los Angeles / LAX" />
+              </div>
+
+              <div class="field">
+                <label>Travelers</label>
+                <input id="travelers" placeholder="Alex, Emma, Jordan" />
+              </div>
+
+              <div class="field">
+                <label>Budget</label>
+                <select id="budget">
+                  <option value="medium">Medium</option>
+                  <option value="low">Low budget</option>
+                  <option value="luxury">Luxury</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Travel Style</label>
+                <select id="travelStyle">
+                  <option value="balanced">Balanced</option>
+                  <option value="food focused">Food focused</option>
+                  <option value="culture and history">Culture and history</option>
+                  <option value="nature and relaxation">Nature and relaxation</option>
+                  <option value="shopping and city walk">Shopping and city walk</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Pace</label>
+                <select id="pace">
+                  <option value="medium">Medium</option>
+                  <option value="slow">Slow</option>
+                  <option value="fast">Fast</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Food Preference</label>
+                <input id="foodPreference" placeholder="local food, cafes, street food" />
+              </div>
+
+              <div class="field">
+                <label>Must-see Places</label>
+                <input id="mustSee" placeholder="museum, landmark, beach..." />
+              </div>
+
+              <div class="field">
+                <label>Avoid</label>
+                <input id="avoid" placeholder="too much walking, nightlife, crowded places..." />
+              </div>
+
+              <div class="field">
+                <label>Actual Arrival Date optional</label>
+                <input id="arrivalDate" type="date" />
+              </div>
+
+              <div class="field">
+                <label>Actual Arrival Time optional</label>
+                <input id="arrivalTime" type="time" />
+              </div>
+
+              <div class="field">
+                <label>Return Departure Date optional</label>
+                <input id="returnDepartureDate" type="date" />
+              </div>
+
+              <div class="field">
+                <label>Return Departure Time optional</label>
+                <input id="returnDepartureTime" type="time" />
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="primary" onclick="generateTrip()">Generate Trip</button>
+            <button class="secondary" onclick="fillConfirmedExample()">Test Flight Example</button>
+            <button class="secondary" onclick="fillEstimatedExample()">Test Estimated Example</button>
+            <a id="flightPdfLink" class="print-link hidden" target="_blank">Print Flight Info</a>
+          </div>
+
+          <div id="planStatus" class="status"></div>
+        </div>
+
+        <div id="planResult"></div>
+      </section>
+
+      <section id="itineraryPanel" class="panel">
+        <h2>Edit Itinerary</h2>
+
+        <div id="itineraryTripSummary" class="itinerary-top-summary hidden"></div>
+
+        <p class="helper-text">
+          This page shows the full daily route. Each activity can include real Google Places data such as rating, reviews, address, price level, and Google Maps link.
+        </p>
+
+        <div class="btn-row">
+          <button class="primary" onclick="openItineraryModal()">+ Add Activity</button>
+          <button class="secondary" onclick="loadItinerary()">Refresh Itinerary</button>
+          <button class="success" onclick="regenerateItinerary()">Regenerate from Trip Info</button>
+          <a id="itineraryPdfLink" class="print-link hidden" target="_blank">Print Final Itinerary PDF</a>
+        </div>
+
+        <div id="itineraryStatus" class="status"></div>
+        <div id="itineraryList" style="margin-top: 18px;"></div>
+      </section>
+
+      <section id="expensesPanel" class="panel">
+        <h2>Track Expenses</h2>
+
+        <div class="simple-card">
+          <h3>Settlement Currency</h3>
+          <p class="helper-text">All expenses will be converted into this currency for final settlement.</p>
+
+          <div class="form-grid">
+            <div class="field">
+              <label>Base Currency</label>
+              <select id="baseCurrency" onchange="loadSettlementIfVisible()"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Description</label>
+            <input id="expenseDescription" placeholder="Hotel / Dinner / Uber" />
+          </div>
+
+          <div class="field">
+            <label>Amount</label>
+            <input id="expenseAmount" type="number" step="0.01" placeholder="12000" />
+          </div>
+
+          <div class="field">
+            <label>Expense Currency</label>
+            <select id="expenseCurrency"></select>
+          </div>
+
+          <div class="field">
+            <label>Paid By</label>
+            <input id="expensePaidBy" placeholder="Alex" />
+          </div>
+
+          <div class="field">
+            <label>Shared With</label>
+            <input id="expenseSharedWith" placeholder="Emma, Jordan" />
+          </div>
+
+          <div class="field">
+            <label>Category</label>
+            <input id="expenseCategory" placeholder="Food / Hotel / Transport" />
+          </div>
+
+          <div class="field">
+            <label>Date</label>
+            <input id="expenseDate" type="date" />
+          </div>
+
+          <div class="field">
+            <label>Location</label>
+            <input id="expenseLocation" placeholder="Tokyo" />
+          </div>
+
+          <div class="field full">
+            <label>Quick Import</label>
+            <textarea id="expenseQuickImport" placeholder="Description: Dinner
+Amount: 12000
+Currency: JPY
+Paid by: Alex
+Shared with: Emma, Jordan
+Category: Food
+Date: 2026-06-05
+Location: Tokyo"></textarea>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="secondary" onclick="parseExpenseText()">Auto Fill from Text</button>
+          <button class="primary" onclick="addExpense()">Save Expense with Conversion</button>
+          <button class="secondary" onclick="previewConversion()">Preview Conversion</button>
+          <button class="secondary" onclick="loadExpenses()">Refresh Expenses</button>
+        </div>
+
+        <div id="expenseStatus" class="status"></div>
+        <div id="expenseList" style="margin-top: 18px;"></div>
+      </section>
+
+      <section id="settlementPanel" class="panel">
+        <h2>Split Cost</h2>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Settlement Currency</label>
+            <select id="settlementCurrency"></select>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" onclick="loadSettlement()">Calculate Settlement</button>
+        </div>
+
+        <div id="settlementStatus" class="status"></div>
+        <div id="settlementResult" style="margin-top: 18px;"></div>
+      </section>
+
+      <section id="templatesPanel" class="panel">
+        <h2>Community Trip Templates</h2>
+
+        <div class="btn-row">
+          <button class="primary" onclick="saveCurrentTripAsTemplate()">Save Current Trip as Template</button>
+          <button class="secondary" onclick="loadTemplates()">Refresh Templates</button>
+        </div>
+
+        <div id="templateStatus" class="status"></div>
+        <div id="templateList" class="template-grid" style="margin-top: 18px;"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="tripActionMenu" class="trip-action-menu hidden"></div>
+
+  <div id="itineraryModal" class="modal-backdrop">
+    <div class="modal">
+      <h2 id="modalTitle">Add Activity</h2>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Day</label>
+          <input id="modalDay" type="number" min="1" />
+        </div>
+
+        <div class="field">
+          <label>Date</label>
+          <input id="modalDate" type="date" />
+        </div>
+
+        <div class="field">
+          <label>Start Time</label>
+          <input id="modalStartTime" type="time" />
+        </div>
+
+        <div class="field">
+          <label>End Time</label>
+          <input id="modalEndTime" type="time" />
+        </div>
+
+        <div class="field full">
+          <label>Activity</label>
+          <input id="modalActivity" placeholder="Visit museum / Dinner / Airport transfer" />
+        </div>
+
+        <div class="field">
+          <label>Location</label>
+          <input id="modalLocation" placeholder="Shibuya / Heathrow Airport" />
+        </div>
+
+        <div class="field">
+          <label>Transport</label>
+          <input id="modalTransport" placeholder="Walk / Subway / Uber / Train" />
+        </div>
+
+        <div class="field">
+          <label>Estimated Travel Time</label>
+          <input id="modalTravelTime" placeholder="20 minutes" />
+        </div>
+
+        <div class="field full">
+          <label>Notes</label>
+          <textarea id="modalNotes"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Recommended Place Name optional</label>
+          <input id="modalPlaceName" placeholder="Ichiran Shinjuku / British Museum" />
+        </div>
+
+        <div class="field">
+          <label>Place Type optional</label>
+          <input id="modalPlaceType" placeholder="restaurant / museum / cafe / attraction" />
+        </div>
+
+        <div class="field full">
+          <label>Google Places Search Query optional</label>
+          <input id="modalPlaceSearchQuery" placeholder="best ramen restaurant in Shinjuku Tokyo" />
+        </div>
+
+        <div class="field full">
+          <label>Why Recommended optional</label>
+          <textarea id="modalWhyRecommended" placeholder="Why this place is a good fit for the trip."></textarea>
+        </div>
+
+        <div class="field full">
+          <label>Signature Item / Highlight optional</label>
+          <input id="modalSignatureItem" placeholder="Tonkotsu ramen / famous exhibit / skyline view" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="primary" onclick="saveItineraryItem()">Save Activity</button>
+        <button class="secondary" onclick="closeItineraryModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shareModal" class="modal-backdrop">
+    <div class="modal">
+      <h2>Share & Collaborators</h2>
+      <p class="helper-text">Create a public read-only share link, or invite collaborators by email.</p>
+
+      <div class="share-card">
+        <h3>Public Share Link</h3>
+        <p class="helper-text">Anyone with this link can view a clean read-only version of the trip.</p>
+
+        <div class="btn-row">
+          <button class="primary" onclick="createShareLink()">Create / Copy Share Link</button>
+          <button class="danger" onclick="disableShareLink()">Disable Share Link</button>
+        </div>
+
+        <div id="shareLinkBox" class="helper-text"></div>
+      </div>
+
+      <div class="share-card">
+        <h3>Invite Collaborator</h3>
+        <p class="helper-text">Editor can edit itinerary and expenses. Viewer can only view.</p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Email</label>
+            <input id="collabEmail" placeholder="friend@example.com" />
+          </div>
+
+          <div class="field">
+            <label>Role</label>
+            <select id="collabRole">
+              <option value="editor">Editor</option>
+              <option value="viewer">Viewer</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" onclick="inviteCollaborator()">Invite / Update Collaborator</button>
+          <button class="secondary" onclick="loadCollaborators()">Refresh Collaborators</button>
+        </div>
+      </div>
+
+      <div id="collaboratorStatus" class="status"></div>
+      <div id="collaboratorList"></div>
+
+      <div class="btn-row">
+        <button class="secondary" onclick="closeShareModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="projectModal" class="modal-backdrop">
+    <div class="modal">
+      <h2>Move to Project</h2>
+      <p class="helper-text">
+        Organize trips into projects or folders. You can create a new project or move the selected trip into an existing project.
+      </p>
+
+      <div class="share-card">
+        <h3>Create New Project</h3>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Project Name</label>
+            <input id="newProjectName" placeholder="Example: Japan Summer Trip" />
+          </div>
+
+          <div class="field">
+            <label>Description optional</label>
+            <input id="newProjectDescription" placeholder="Family trip / Hackathon demo / Europe plan" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" onclick="createProjectAndMoveTrip()">Create Project & Move Trip</button>
+        </div>
+      </div>
+
+      <div class="share-card">
+        <h3>Existing Projects</h3>
+        <p class="helper-text">Choose a project below to move this trip.</p>
+
+        <div id="projectMoveList"></div>
+      </div>
+
+      <div id="projectModalStatus" class="status"></div>
+
+      <div class="btn-row">
+        <button class="secondary" onclick="closeProjectModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTripId = null;
+    let currentTrip = null;
+    let currentUser = null;
+    let flightMode = "confirmed";
+    let authMode = "login";
+    let editingItineraryItemId = null;
+
+    let latestTrips = [];
+    let tripListMode = "recent";
+    let latestProjects = [];
+    let movingTripId = null;
+    let currentProjectId = null;
+
+    let currencies = [
+      "USD", "EUR", "GBP", "JPY", "CNY", "KRW", "CAD",
+      "AUD", "HKD", "SGD", "THB", "CHF", "MXN"
+    ];
+
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function getToken() {
+      return localStorage.getItem("travelsplit_token") || "";
+    }
+
+    function setToken(token) {
+      localStorage.setItem("travelsplit_token", token);
+    }
+
+    function clearToken() {
+      localStorage.removeItem("travelsplit_token");
+    }
+
+    async function authFetch(url, options = {}) {
+      const token = getToken();
+      const headers = { ...(options.headers || {}) };
+
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, {
+        ...options,
+        headers,
+      });
+
+      if (response.status === 401) {
+        clearToken();
+        showAuthScreen();
+        throw new Error("Please login again.");
+      }
+
+      return response;
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      $("loginTab").classList.toggle("active", mode === "login");
+      $("registerTab").classList.toggle("active", mode === "register");
+      $("registerNameField").classList.toggle("hidden", mode !== "register");
+      $("authSubmitBtn").textContent = mode === "login" ? "Login" : "Create Account";
+      $("authStatus").textContent = "";
+    }
+
+    async function submitAuth() {
+      const name = $("authName").value.trim();
+      const email = $("authEmail").value.trim();
+      const password = $("authPassword").value;
+
+      if (!email || !password) {
+        $("authStatus").textContent = "Please enter email and password.";
+        return;
+      }
+
+      if (authMode === "register" && !name) {
+        $("authStatus").textContent = "Please enter your name.";
+        return;
+      }
+
+      $("authStatus").textContent = authMode === "login" ? "Logging in..." : "Creating account...";
+
+      try {
+        const endpoint = authMode === "login" ? "/api/auth/login" : "/api/auth/register";
+        const payload = authMode === "login" ? { email, password } : { name, email, password };
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Authentication failed.");
+        }
+
+        setToken(data.token);
+        currentUser = data.user;
+        await showAppScreen();
+      } catch (error) {
+        console.error(error);
+        $("authStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function checkExistingLogin() {
+      const token = getToken();
+
+      if (!token) {
+        showAuthScreen();
+        return;
+      }
+
+      try {
+        const response = await authFetch("/api/auth/me");
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Invalid session.");
+        }
+
+        currentUser = data.user;
+        await showAppScreen();
+      } catch (error) {
+        console.error(error);
+        showAuthScreen();
+      }
+    }
+
+    function showAuthScreen() {
+      $("authScreen").classList.remove("hidden");
+      $("appScreen").classList.add("hidden");
+      currentUser = null;
+      currentTripId = null;
+      currentTrip = null;
+    }
+
+    async function showAppScreen() {
+      $("authScreen").classList.add("hidden");
+      $("appScreen").classList.remove("hidden");
+
+      $("sidebarUserName").textContent = currentUser?.name || "Signed in";
+      $("sidebarUserEmail").textContent = currentUser?.email || "";
+
+      currentTripId = null;
+      currentTrip = null;
+      currentProjectId = null;
+      tripListMode = "recent";
+
+      $("planResult").innerHTML = "";
+      $("itineraryList").innerHTML = "";
+      $("expenseList").innerHTML = "";
+      $("settlementResult").innerHTML = "";
+
+      setFlightMode("confirmed");
+      updatePdfLinks();
+
+      await loadCurrencies();
+      await loadTrips();
+      showPanel("planPanel");
+    }
+
+    function logout() {
+      clearToken();
+      showAuthScreen();
+    }
+
+    function updateSidebarTabs() {
+      $("recentTabBtn").classList.toggle("active", tripListMode === "recent");
+      $("sharedTabBtn").classList.toggle("active", tripListMode === "shared");
+      $("archivedTabBtn").classList.toggle("active", tripListMode === "archived");
+      $("projectsTabBtn").classList.toggle(
+        "active",
+        tripListMode === "projects" || tripListMode === "projectTrips"
+      );
+    }
+
+    async function setTripListMode(mode) {
+      tripListMode = mode;
+      currentProjectId = null;
+      updateSidebarTabs();
+
+      if (mode === "projects") {
+        await loadProjectsSidebar();
+        return;
+      }
+
+      await loadTrips();
+    }
+
+    async function refreshSidebar() {
+      if (tripListMode === "projects") {
+        await loadProjectsSidebar();
+      } else {
+        await loadTrips();
+      }
+    }
+
+    function showPanel(panelId) {
+      document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
+      document.querySelectorAll(".feature-card").forEach((card) => card.classList.remove("active"));
+
+      $(panelId).classList.add("active");
+
+      const activeCard = document.querySelector(`[data-panel="${panelId}"]`);
+      if (activeCard) activeCard.classList.add("active");
+
+      if (panelId === "itineraryPanel") loadItinerary();
+      if (panelId === "expensesPanel") loadExpenses();
+      if (panelId === "settlementPanel") loadSettlement();
+      if (panelId === "templatesPanel") loadTemplates();
+    }
+
+    function setFlightMode(mode) {
+      flightMode = mode;
+      $("confirmedModeBox").classList.toggle("active", mode === "confirmed");
+      $("estimatedModeBox").classList.toggle("active", mode === "estimated");
+      $("confirmedSimpleFields").classList.toggle("hidden", mode !== "confirmed");
+      $("estimatedSimpleFields").classList.toggle("hidden", mode !== "estimated");
+    }
+
+    function toggleAdvanced() {
+      const box = $("advancedBox");
+      const isHidden = box.classList.contains("hidden");
+      box.classList.toggle("hidden", !isHidden);
+      $("advancedArrow").textContent = isHidden ? "▲" : "▼";
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      try {
+        return new Date(value).toLocaleString();
+      } catch {
+        return value;
+      }
+    }
+
+    function money(value) {
+      return Number(value || 0).toFixed(2);
+    }
+
+    function formatRating(value) {
+      if (value === undefined || value === null || value === "") return "Not available";
+      return `${Number(value).toFixed(1)} / 5`;
+    }
+
+    function formatReviewCount(value) {
+      if (!value) return "No review count";
+      return `${Number(value).toLocaleString()} reviews`;
+    }
+
+    function formatPriceLevel(value) {
+      if (!value) return "Not available";
+      return String(value).replaceAll("_", " ");
+    }
+
+    function getRoleClass(role) {
+      if (role === "owner") return "role-owner";
+      if (role === "editor") return "role-editor";
+      if (role === "viewer") return "role-viewer";
+      return "";
+    }
+
+    function fillCurrencySelect(selectId, defaultValue) {
+      const select = $(selectId);
+      if (!select) return;
+
+      select.innerHTML = currencies
+        .map((currency) => {
+          const selected = currency === defaultValue ? "selected" : "";
+          return `<option value="${currency}" ${selected}>${currency}</option>`;
+        })
+        .join("");
+    }
+
+    async function loadCurrencies() {
+      try {
+        const response = await authFetch("/api/currencies");
+        const data = await response.json();
+
+        if (data.success && Array.isArray(data.currencies)) {
+          currencies = data.currencies;
+        }
+      } catch (error) {
+        console.error("Failed to load currencies, using default list.", error);
+      }
+
+      fillCurrencySelect("baseCurrency", "USD");
+      fillCurrencySelect("expenseCurrency", "USD");
+      fillCurrencySelect("settlementCurrency", "USD");
+    }
+
+    function updatePdfLinks() {
+      const flightPdfLink = $("flightPdfLink");
+      const itineraryPdfLink = $("itineraryPdfLink");
+
+      if (!currentTripId) {
+        if (flightPdfLink) flightPdfLink.classList.add("hidden");
+        if (itineraryPdfLink) itineraryPdfLink.classList.add("hidden");
+        return;
+      }
+
+      if (flightPdfLink) {
+        flightPdfLink.href = `/flight-print/${currentTripId}`;
+        flightPdfLink.classList.remove("hidden");
+      }
+
+      if (itineraryPdfLink) {
+        itineraryPdfLink.href = `/trip-print/${currentTripId}`;
+        itineraryPdfLink.classList.remove("hidden");
+      }
+    }
+
+    function getDailyDaysCount(plan) {
+      if (!plan || !Array.isArray(plan.dailyItinerary)) return 0;
+      return plan.dailyItinerary.length;
+    }
+
+    function getTripPayload() {
+      if (flightMode === "confirmed") {
+        return {
+          flightMode: "confirmed",
+          flightNumber: $("flightNumber").value.trim(),
+          flightDate: $("flightDate").value,
+          destination: $("confirmedDestination").value.trim(),
+          hotelArea: $("confirmedHotelArea").value.trim(),
+          prompt: $("confirmedPrompt").value.trim(),
+          origin: $("origin").value.trim(),
+          travelers: $("travelers").value.trim(),
+          budget: $("budget").value,
+          travelStyle: $("travelStyle").value,
+          pace: $("pace").value,
+          foodPreference: $("foodPreference").value.trim(),
+          mustSee: $("mustSee").value.trim(),
+          avoid: $("avoid").value.trim(),
+          arrivalDate: $("arrivalDate").value,
+          arrivalTime: $("arrivalTime").value,
+          returnDepartureDate: $("returnDepartureDate").value,
+          returnDepartureTime: $("returnDepartureTime").value,
+        };
+      }
+
+      return {
+        flightMode: "estimated",
+        destination: $("estimatedDestination").value.trim(),
+        startDate: $("startDate").value,
+        tripDays: $("tripDays").value,
+        hotelArea: $("estimatedHotelArea").value.trim(),
+        prompt: $("estimatedPrompt").value.trim(),
+        origin: $("origin").value.trim(),
+        travelers: $("travelers").value.trim(),
+        budget: $("budget").value,
+        travelStyle: $("travelStyle").value,
+        pace: $("pace").value,
+        foodPreference: $("foodPreference").value.trim(),
+        mustSee: $("mustSee").value.trim(),
+        avoid: $("avoid").value.trim(),
+      };
+    }
+
+    async function generateTrip() {
+      const payload = getTripPayload();
+
+      if (flightMode === "confirmed") {
+        if (!payload.flightNumber || !payload.flightDate || !payload.destination) {
+          $("planStatus").textContent = "Please enter flight number, flight date, and destination.";
+          return;
+        }
+      }
+
+      if (flightMode === "estimated") {
+        if (!payload.destination || !payload.startDate || !payload.tripDays) {
+          $("planStatus").textContent = "Please enter destination, estimated start date, and trip length.";
+          return;
+        }
+      }
+
+      $("planStatus").textContent = "Generating your trip and fetching real place ratings...";
+      $("planResult").innerHTML = "";
+
+      try {
+        const response = await authFetch("/api/generate-trip", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || data.message || "Failed to generate trip.");
+        }
+
+        currentTripId = data.tripId;
+        currentTrip = data.trip;
+
+        $("planStatus").textContent = "Trip created successfully with real place data where available.";
+
+        updatePdfLinks();
+        renderTripSummary(data.travelPlan, currentTrip);
+        renderItineraryTopSummary();
+
+        tripListMode = "recent";
+        await loadTrips();
+        await loadItinerary();
+      } catch (error) {
+        console.error(error);
+        $("planStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    function renderTripSummary(plan, trip) {
+      const daysCount = getDailyDaysCount(plan);
+      const flightInfo = trip?.flightInfo || {};
+      const modeText = trip?.flightMode === "confirmed" ? "Confirmed flight" : "Estimated trip";
+
+      const flightDisplay =
+        trip?.flightMode === "confirmed"
+          ? `${flightInfo.flightNumber || "Flight"} · ${flightInfo.flightDate || "Date not set"}`
+          : `${flightInfo.startDate || "Start date not set"} · ${flightInfo.tripDays || daysCount || "?"} days`;
+
+      const stayArea =
+        flightInfo.hotelArea ||
+        plan?.destinationAnalysis?.bestAreasToStay?.[0] ||
+        "Not decided yet";
+
+      $("planResult").innerHTML = `
+        <div class="trip-summary-box">
+          <div class="trip-summary-header">
+            <div>
+              <h3>${escapeHtml(plan?.tripTitle || trip?.title || "Trip Created")}</h3>
+              <p class="helper-text">${escapeHtml(plan?.summary || "Your trip has been generated. You can edit the full daily route in Edit Itinerary.")}</p>
+            </div>
+            <span class="success-badge">✅ Created</span>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-card">
+              <div class="label">Destination</div>
+              <div class="value">${escapeHtml(plan?.destination || trip?.destination || "Unknown")}</div>
+            </div>
+
+            <div class="summary-card">
+              <div class="label">Trip Mode</div>
+              <div class="value">${escapeHtml(modeText)}</div>
+            </div>
+
+            <div class="summary-card">
+              <div class="label">Flight / Date</div>
+              <div class="value">${escapeHtml(flightDisplay)}</div>
+            </div>
+
+            <div class="summary-card">
+              <div class="label">Stay Area</div>
+              <div class="value">${escapeHtml(stayArea)}</div>
+            </div>
+          </div>
+
+          <div class="next-step-box">
+            <strong>Next step:</strong>
+            Daily itinerary has been generated with ${daysCount || "multiple"} day(s).
+            Go to <strong>Edit Itinerary</strong> to view the route with real Google Places data.
+          </div>
+
+          <div class="btn-row">
+            <button class="primary" onclick="showPanel('itineraryPanel')">View Daily Itinerary</button>
+            <button class="secondary" onclick="showPanel('expensesPanel')">Track Expenses</button>
+            <a class="print-link" href="/flight-print/${currentTripId}" target="_blank">Print Flight Info</a>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderItineraryTopSummary() {
+      const box = $("itineraryTripSummary");
+
+      if (!currentTrip) {
+        box.classList.add("hidden");
+        box.innerHTML = "";
+        return;
+      }
+
+      const flightInfo = currentTrip.flightInfo || {};
+      const modeText = currentTrip.flightMode === "confirmed" ? "Confirmed Flight" : "Estimated Trip";
+
+      const detailText =
+        currentTrip.flightMode === "confirmed"
+          ? `${flightInfo.flightNumber || "No flight number"} · ${flightInfo.flightDate || "No flight date"}`
+          : `${flightInfo.startDate || "No start date"} · ${flightInfo.tripDays || "?"} days`;
+
+      box.innerHTML = `
+        <h3>${escapeHtml(currentTrip.title || "Current Trip")}</h3>
+        <p class="helper-text">
+          ${escapeHtml(currentTrip.destination || "Unknown destination")}
+          · ${escapeHtml(modeText)}
+          · ${escapeHtml(detailText)}
+          ${flightInfo.hotelArea ? " · Stay area: " + escapeHtml(flightInfo.hotelArea) : ""}
+          ${currentTrip.projectName ? " · Project: " + escapeHtml(currentTrip.projectName) : ""}
+        </p>
+      `;
+
+      box.classList.remove("hidden");
+    }
+
+    async function loadTrips() {
+      try {
+        updateSidebarTabs();
+
+        let endpoint = "/api/trips";
+
+        if (tripListMode === "shared") endpoint = "/api/trips/shared";
+        if (tripListMode === "archived") endpoint = "/api/trips/archived";
+        if (tripListMode === "projects") {
+          await loadProjectsSidebar();
+          return;
+        }
+        if (tripListMode === "projectTrips" && currentProjectId) {
+          endpoint = `/api/projects/${currentProjectId}/trips`;
+        }
+
+        const response = await authFetch(endpoint);
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to load trips.");
+
+        const trips = data.trips || [];
+        latestTrips = trips;
+
+        let headerHtml = "";
+
+        if (tripListMode === "projectTrips" && data.project) {
+          headerHtml = `
+            <div class="trip-card" style="cursor: default;">
+              <div class="trip-title">📁 ${escapeHtml(data.project.name || "Project")}</div>
+              <div class="trip-meta">${escapeHtml(data.project.description || "Project trips")}</div>
+              <div class="btn-row" style="margin-top: 10px;">
+                <button class="secondary" onclick="setTripListMode('projects')">← Back</button>
+                <button class="secondary" onclick="renameProject('${data.project._id}', '${escapeHtml(data.project.name || "")}', '${escapeHtml(data.project.description || "")}')">Rename</button>
+                <button class="danger" onclick="deleteProject('${data.project._id}')">Delete</button>
+              </div>
+            </div>
+          `;
+        }
+
+        if (trips.length === 0) {
+          $("tripList").innerHTML =
+            headerHtml +
+            `
+              <div class="trip-card">
+                <div class="trip-title">No trips found</div>
+                <div class="trip-meta">
+                  ${tripListMode === "recent" ? "Create a trip to see it here." : ""}
+                  ${tripListMode === "shared" ? "Trips shared with your email will appear here." : ""}
+                  ${tripListMode === "archived" ? "Archived trips will appear here." : ""}
+                  ${tripListMode === "projectTrips" ? "No trips in this project yet." : ""}
+                </div>
+              </div>
+            `;
+          return;
+        }
+
+        $("tripList").innerHTML =
+          headerHtml +
+          trips
+            .map((trip) => {
+              const role = trip.currentUserRole || "owner";
+              const sharedLabel = trip.isSharedWithMe ? " · Shared with me" : "";
+              const archivedLabel = trip.archived ? " · Archived" : "";
+              const projectLabel = trip.projectName ? ` · 📁 ${trip.projectName}` : "";
+
+              return `
+                <div class="trip-card ${trip._id === currentTripId ? "active" : ""}" onclick="selectTrip('${trip._id}')">
+                  <button class="trip-menu-btn" onclick="openTripActionMenu(event, '${trip._id}')">⋯</button>
+                  <div class="trip-title">${trip.pinned ? "📌 " : ""}${escapeHtml(trip.title || "Untitled Trip")}</div>
+                  <div class="trip-meta">${escapeHtml(trip.destination || "Unknown destination")}</div>
+                  <div class="trip-meta">
+                    Mode: ${escapeHtml(trip.flightMode || "estimated")}
+                    ${escapeHtml(sharedLabel)}
+                    ${escapeHtml(archivedLabel)}
+                    ${escapeHtml(projectLabel)}
+                  </div>
+                  <span class="role-badge ${getRoleClass(role)}">${escapeHtml(role)}</span>
+                  <div class="trip-meta">${formatDate(trip.updatedAt || trip.createdAt)}</div>
+                </div>
+              `;
+            })
+            .join("");
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function selectTrip(tripId) {
+      try {
+        const response = await authFetch(`/api/trips/${tripId}`);
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to load trip.");
+
+        currentTripId = tripId;
+        currentTrip = data.trip;
+
+        updatePdfLinks();
+        renderTripSummary(currentTrip.travelPlan, currentTrip);
+        renderItineraryTopSummary();
+
+        await loadTrips();
+        await loadItinerary();
+        await loadExpenses();
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    }
+
+    function closeTripActionMenu() {
+      $("tripActionMenu").classList.add("hidden");
+      $("tripActionMenu").innerHTML = "";
+    }
+
+    function getTripFromLatest(tripId) {
+      return latestTrips.find((trip) => String(trip._id) === String(tripId)) || currentTrip;
+    }
+
+    function openTripActionMenu(event, tripId) {
+      event.stopPropagation();
+
+      const trip = getTripFromLatest(tripId);
+      const role = trip?.currentUserRole || "owner";
+      const owner = role === "owner";
+      const canEdit = role === "owner" || role === "editor";
+
+      const menu = $("tripActionMenu");
+
+      const rect = event.currentTarget.getBoundingClientRect();
+      menu.style.left = Math.min(rect.left, window.innerWidth - 290) + "px";
+      menu.style.top = Math.min(rect.bottom + 8, window.innerHeight - 520) + "px";
+
+      const archivePart = trip?.archived
+        ? `
+          <button class="trip-action-item" ${owner ? "" : "disabled"} onclick="restoreTripFromMenu('${tripId}')">
+            <span class="trip-action-icon">♻️</span>
+            <span>Restore</span>
+          </button>
+        `
+        : `
+          <button class="trip-action-item" ${owner ? "" : "disabled"} onclick="archiveTripFromMenu('${tripId}')">
+            <span class="trip-action-icon">🗄️</span>
+            <span>Archive</span>
+          </button>
+        `;
+
+      const projectPart = trip?.projectId
+        ? `
+          <button class="trip-action-item" ${owner ? "" : "disabled"} onclick="removeTripFromProject('${tripId}')">
+            <span class="trip-action-icon">↩️</span>
+            <span>Remove from project</span>
+          </button>
+        `
+        : "";
+
+      menu.innerHTML = `
+        <button class="trip-action-item" ${owner ? "" : "disabled"} onclick="openShareModal('${tripId}')">
+          <span class="trip-action-icon">⬆️</span>
+          <span>Share</span>
+        </button>
+
+        <button class="trip-action-item" ${owner ? "" : "disabled"} onclick="openShareModal('${tripId}')">
+          <span class="trip-action-icon">👥</span>
+          <span>Start a group chat</span>
+        </button>
+
+        <button class="trip-action-item" ${canEdit ? "" : "disabled"} onclick="renameTripFromMenu('${tripId}')">
+          <span class="trip-action-icon">✏️</span>
+          <span>Rename</span>
+        </button>
+
+        <button class="trip-action-item" ${owner ? "" : "disabled"} onclick="openMoveToProjectModal('${tripId}')">
+          <span class="trip-action-icon">📁</span>
+          <span>Move to project</span>
+        </button>
+
+        ${projectPart}
+
+        <div class="trip-action-divider"></div>
+
+        <button class="trip-action-item" ${canEdit ? "" : "disabled"} onclick="pinTripFromMenu('${tripId}', ${trip?.pinned ? "false" : "true"})">
+          <span class="trip-action-icon">📍</span>
+          <span>${trip?.pinned ? "Unpin trip" : "Pin trip"}</span>
+        </button>
+
+        ${archivePart}
+
+        <button class="trip-action-item delete-action" ${owner ? "" : "disabled"} onclick="deleteTripFromMenu('${tripId}')">
+          <span class="trip-action-icon">🗑️</span>
+          <span>Delete</span>
+        </button>
+      `;
+
+      menu.classList.remove("hidden");
+    }
+
+    document.addEventListener("click", (event) => {
+      const menu = $("tripActionMenu");
+      if (!menu.classList.contains("hidden") && !menu.contains(event.target)) {
+        closeTripActionMenu();
+      }
+    });
+
+    async function renameTripFromMenu(tripId) {
+      closeTripActionMenu();
+
+      const trip = getTripFromLatest(tripId);
+      const newTitle = prompt("New trip title:", trip?.title || "");
+      if (!newTitle) return;
+
+      try {
+        const response = await authFetch(`/api/trips/${tripId}/rename`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: newTitle }),
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || "Failed to rename.");
+
+        if (currentTripId === tripId && currentTrip) {
+          currentTrip.title = newTitle;
+          renderTripSummary(currentTrip.travelPlan, currentTrip);
+          renderItineraryTopSummary();
+        }
+
+        await loadTrips();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function pinTripFromMenu(tripId, pinned) {
+      closeTripActionMenu();
+
+      try {
+        const response = await authFetch(`/api/trips/${tripId}/pin`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pinned }),
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || "Failed to update pin.");
+
+        await loadTrips();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function archiveTripFromMenu(tripId) {
+      closeTripActionMenu();
+
+      const ok = confirm("Archive this trip?");
+      if (!ok) return;
+
+      try {
+        const response = await authFetch(`/api/trips/${tripId}/archive`, {
+          method: "PUT",
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || "Failed to archive.");
+
+        if (currentTripId === tripId) {
+          currentTripId = null;
+          currentTrip = null;
+          $("planResult").innerHTML = "";
+          $("itineraryList").innerHTML = "";
+          $("expenseList").innerHTML = "";
+          $("settlementResult").innerHTML = "";
+          renderItineraryTopSummary();
+          updatePdfLinks();
+        }
+
+        await loadTrips();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function restoreTripFromMenu(tripId) {
+      closeTripActionMenu();
+
+      try {
+        const response = await authFetch(`/api/trips/${tripId}/restore`, {
+          method: "PUT",
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || "Failed to restore.");
+
+        await loadTrips();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function deleteTripFromMenu(tripId) {
+      closeTripActionMenu();
+
+      const ok = confirm("Delete this trip? This cannot be undone.");
+      if (!ok) return;
+
+      try {
+        const response = await authFetch(`/api/trips/${tripId}`, { method: "DELETE" });
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to delete.");
+
+        if (currentTripId === tripId) {
+          currentTripId = null;
+          currentTrip = null;
+          $("planResult").innerHTML = "";
+          $("itineraryList").innerHTML = "";
+          $("expenseList").innerHTML = "";
+          $("settlementResult").innerHTML = "";
+          renderItineraryTopSummary();
+          updatePdfLinks();
+        }
+
+        await loadTrips();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function openShareModal(tripId) {
+      closeTripActionMenu();
+
+      currentTripId = tripId;
+      $("shareLinkBox").innerHTML = "";
+      $("collaboratorStatus").textContent = "";
+      $("collabEmail").value = "";
+      $("shareModal").classList.add("active");
+
+      await loadCollaborators();
+    }
+
+    function closeShareModal() {
+      $("shareModal").classList.remove("active");
+    }
+
+    async function createShareLink() {
+      if (!currentTripId) return;
+
+      try {
+        const response = await authFetch(`/api/trips/${currentTripId}/share`, {
+          method: "POST",
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || "Failed to create share link.");
+
+        $("shareLinkBox").innerHTML = `
+          <strong>Share Link:</strong><br />
+          <a href="${escapeHtml(data.shareUrl)}" target="_blank">${escapeHtml(data.shareUrl)}</a>
+        `;
+
+        try {
+          await navigator.clipboard.writeText(data.shareUrl);
+          alert("Share link copied:\n" + data.shareUrl);
+        } catch {
+          alert("Share link created:\n" + data.shareUrl);
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function disableShareLink() {
+      if (!currentTripId) return;
+
+      const ok = confirm("Disable public share link?");
+      if (!ok) return;
+
+      try {
+        const response = await authFetch(`/api/trips/${currentTripId}/share`, {
+          method: "DELETE",
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || "Failed to disable share link.");
+
+        $("shareLinkBox").innerHTML = "";
+        alert("Share link disabled.");
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function loadCollaborators() {
+      if (!currentTripId) return;
+
+      $("collaboratorStatus").textContent = "Loading collaborators...";
+
+      try {
+        const response = await authFetch(`/api/trips/${currentTripId}/collaborators`);
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to load collaborators.");
+
+        const collaborators = data.collaborators || [];
+
+        $("collaboratorList").innerHTML = `
+          <div class="collab-card">
+            <strong>Owner</strong>
+            <p class="activity-meta">${escapeHtml(data.owner?.name || "Owner")} ${data.owner?.email ? " · " + escapeHtml(data.owner.email) : ""}</p>
+          </div>
+
+          ${
+            collaborators.length === 0
+              ? `<p class="helper-text"><strong>No collaborators yet.</strong></p>`
+              : collaborators.map((item) => `
+                <div class="collab-card">
+                  <strong>${escapeHtml(item.email || "")}</strong>
+                  <p class="activity-meta">
+                    Role: ${escapeHtml(item.role || "editor")}<br />
+                    Status: ${escapeHtml(item.status || "invited")}<br />
+                    ${item.name ? "Name: " + escapeHtml(item.name) : ""}
+                  </p>
+                  ${
+                    data.currentUserRole === "owner"
+                      ? `<button class="danger" onclick="removeCollaborator('${encodeURIComponent(item.email)}')">Remove</button>`
+                      : ""
+                  }
+                </div>
+              `).join("")
+          }
+        `;
+
+        $("collaboratorStatus").textContent = "Collaborators loaded.";
+      } catch (error) {
+        $("collaboratorStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function inviteCollaborator() {
+      if (!currentTripId) return;
+
+      const email = $("collabEmail").value.trim();
+      const role = $("collabRole").value;
+
+      if (!email) {
+        $("collaboratorStatus").textContent = "Please enter collaborator email.";
+        return;
+      }
+
+      $("collaboratorStatus").textContent = "Saving collaborator...";
+
+      try {
+        const response = await authFetch(`/api/trips/${currentTripId}/collaborators`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, role }),
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || "Failed to invite collaborator.");
+
+        $("collaboratorStatus").textContent = data.message || "Collaborator saved.";
+        $("collabEmail").value = "";
+        await loadCollaborators();
+      } catch (error) {
+        $("collaboratorStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function removeCollaborator(encodedEmail) {
+      if (!currentTripId) return;
+
+      const email = decodeURIComponent(encodedEmail);
+      const ok = confirm(`Remove ${email} from this trip?`);
+      if (!ok) return;
+
+      try {
+        const response = await authFetch(`/api/trips/${currentTripId}/collaborators/${encodeURIComponent(email)}`, {
+          method: "DELETE",
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || "Failed to remove collaborator.");
+
+        await loadCollaborators();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function loadProjectsSidebar() {
+      try {
+        updateSidebarTabs();
+        tripListMode = "projects";
+
+        const response = await authFetch("/api/projects");
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Failed to load projects.");
+        }
+
+        latestProjects = data.projects || [];
+
+        if (latestProjects.length === 0) {
+          $("tripList").innerHTML = `
+            <div class="trip-card" style="cursor: default;">
+              <div class="trip-title">No projects yet</div>
+              <div class="trip-meta">Use Move to project from a trip menu to create your first project.</div>
+            </div>
+          `;
+          return;
+        }
+
+        $("tripList").innerHTML = latestProjects
+          .map(
+            (project) => `
+              <div class="trip-card" onclick="openProjectTrips('${project._id}')">
+                <div class="trip-title">📁 ${escapeHtml(project.name || "Untitled Project")}</div>
+                <div class="trip-meta">${escapeHtml(project.description || "No description")}</div>
+                <div class="trip-meta">${project.tripCount || 0} trip(s)</div>
+                <div class="trip-meta">${formatDate(project.updatedAt || project.createdAt)}</div>
+              </div>
+            `
+          )
+          .join("");
+      } catch (error) {
+        console.error(error);
+        $("tripList").innerHTML = `
+          <div class="trip-card">
+            <div class="trip-title">Failed to load projects</div>
+            <div class="trip-meta">${escapeHtml(error.message)}</div>
+          </div>
+        `;
+      }
+    }
+
+    async function openProjectTrips(projectId) {
+      currentProjectId = projectId;
+      tripListMode = "projectTrips";
+      updateSidebarTabs();
+      await loadTrips();
+    }
+
+    async function openMoveToProjectModal(tripId) {
+      closeTripActionMenu();
+
+      movingTripId = tripId;
+      $("projectModalStatus").textContent = "";
+      $("newProjectName").value = "";
+      $("newProjectDescription").value = "";
+
+      $("projectModal").classList.add("active");
+
+      await loadProjectsForMoveModal();
+    }
+
+    function closeProjectModal() {
+      $("projectModal").classList.remove("active");
+      movingTripId = null;
+    }
+
+    async function loadProjectsForMoveModal() {
+      try {
+        $("projectMoveList").innerHTML = `<p class="helper-text">Loading projects...</p>`;
+
+        const response = await authFetch("/api/projects");
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Failed to load projects.");
+        }
+
+        latestProjects = data.projects || [];
+
+        if (latestProjects.length === 0) {
+          $("projectMoveList").innerHTML = `
+            <p class="helper-text">No projects yet. Create a new project above.</p>
+          `;
+          return;
+        }
+
+        $("projectMoveList").innerHTML = latestProjects
+          .map(
+            (project) => `
+              <div class="collab-card">
+                <strong>📁 ${escapeHtml(project.name || "Untitled Project")}</strong>
+                <p class="activity-meta">
+                  ${escapeHtml(project.description || "No description")}<br />
+                  ${project.tripCount || 0} trip(s)
+                </p>
+                <button class="primary" onclick="moveTripToProject('${project._id}')">Move Here</button>
+              </div>
+            `
+          )
+          .join("");
+      } catch (error) {
+        console.error(error);
+        $("projectMoveList").innerHTML = `
+          <p class="helper-text">Error: ${escapeHtml(error.message)}</p>
+        `;
+      }
+    }
+
+    async function createProjectAndMoveTrip() {
+      const name = $("newProjectName").value.trim();
+      const description = $("newProjectDescription").value.trim();
+
+      if (!movingTripId) {
+        $("projectModalStatus").textContent = "No trip selected.";
+        return;
+      }
+
+      if (!name) {
+        $("projectModalStatus").textContent = "Please enter a project name.";
+        return;
+      }
+
+      $("projectModalStatus").textContent = "Creating project...";
+
+      try {
+        const response = await authFetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, description }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Failed to create project.");
+        }
+
+        await moveTripToProject(data.project._id);
+      } catch (error) {
+        console.error(error);
+        $("projectModalStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function moveTripToProject(projectId) {
+      if (!movingTripId) {
+        $("projectModalStatus").textContent = "No trip selected.";
+        return;
+      }
+
+      $("projectModalStatus").textContent = "Moving trip to project...";
+
+      try {
+        const response = await authFetch(`/api/trips/${movingTripId}/move-to-project`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Failed to move trip.");
+        }
+
+        $("projectModalStatus").textContent = "Trip moved to project.";
+
+        if (currentTripId === movingTripId && currentTrip) {
+          currentTrip.projectId = data.projectId;
+          currentTrip.projectName = data.projectName;
+          renderItineraryTopSummary();
+        }
+
+        closeProjectModal();
+
+        tripListMode = "projects";
+        updateSidebarTabs();
+        await loadProjectsSidebar();
+      } catch (error) {
+        console.error(error);
+        $("projectModalStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function removeTripFromProject(tripId) {
+      closeTripActionMenu();
+
+      const ok = confirm("Remove this trip from its project and move it back to Recent?");
+      if (!ok) return;
+
+      try {
+        const response = await authFetch(`/api/trips/${tripId}/remove-from-project`, {
+          method: "PUT",
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Failed to remove trip from project.");
+        }
+
+        await loadTrips();
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    }
+
+    async function renameProject(projectId, oldName, oldDescription) {
+      const name = prompt("Project name:", oldName || "");
+      if (!name) return;
+
+      const description = prompt("Project description:", oldDescription || "") || "";
+
+      try {
+        const response = await authFetch(`/api/projects/${projectId}/rename`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, description }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Failed to update project.");
+        }
+
+        if (currentProjectId === projectId) {
+          await loadTrips();
+        } else {
+          await loadProjectsSidebar();
+        }
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    }
+
+    async function deleteProject(projectId) {
+      const ok = confirm("Delete this project? Trips inside it will move back to Recent.");
+      if (!ok) return;
+
+      try {
+        const response = await authFetch(`/api/projects/${projectId}`, {
+          method: "DELETE",
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Failed to delete project.");
+        }
+
+        currentProjectId = null;
+        tripListMode = "projects";
+        await loadProjectsSidebar();
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    }
+
+    function cleanLocation(value) {
+      return String(value || "").trim();
+    }
+
+    function getTripDestinationText() {
+      return (currentTrip?.destination || currentTrip?.flightInfo?.destination || "").trim();
+    }
+
+    function getMapLocation(item) {
+      const location = cleanLocation(item?.location);
+      if (!location) return "";
+
+      const destination = getTripDestinationText();
+
+      if (destination && !location.toLowerCase().includes(destination.toLowerCase())) {
+        return `${location}, ${destination}`;
+      }
+
+      return location;
+    }
+
+    function inferGoogleTravelMode(transport) {
+      const text = String(transport || "").toLowerCase();
+
+      if (text.includes("walk") || text.includes("walking") || text.includes("foot")) return "walking";
+      if (text.includes("car") || text.includes("drive") || text.includes("driving") || text.includes("taxi") || text.includes("uber") || text.includes("lyft")) return "driving";
+      if (text.includes("bike") || text.includes("bicycle") || text.includes("cycling")) return "bicycling";
+      if (text.includes("subway") || text.includes("metro") || text.includes("train") || text.includes("bus") || text.includes("transit") || text.includes("public")) return "transit";
+
+      return "transit";
+    }
+
+    function googleMapsSearchUrl(location) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+    }
+
+    function googleMapsRouteUrl(origin, destination, travelMode = "transit") {
+      return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=${encodeURIComponent(travelMode)}`;
+    }
+
+    function googleMapsDayRouteUrl(locations, travelMode = "transit") {
+      const validLocations = locations.map((location) => cleanLocation(location)).filter(Boolean);
+
+      if (validLocations.length === 0) return "";
+      if (validLocations.length === 1) return googleMapsSearchUrl(validLocations[0]);
+
+      const origin = validLocations[0];
+      const destination = validLocations[validLocations.length - 1];
+      const waypoints = validLocations.slice(1, -1);
+
+      let url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=${encodeURIComponent(travelMode)}`;
+
+      if (waypoints.length > 0) {
+        url += `&waypoints=${encodeURIComponent(waypoints.join("|"))}`;
+      }
+
+      return url;
+    }
+
+    function renderMapButtonsForItem(item, previousItem) {
+      const currentLocation = getMapLocation(item);
+
+      if (!currentLocation) {
+        return `<span class="map-link disabled">📍 No location</span>`;
+      }
+
+      const openLocationUrl = googleMapsSearchUrl(currentLocation);
+      const travelMode = inferGoogleTravelMode(item.transport);
+
+      let routeButton = "";
+
+      if (previousItem) {
+        const previousLocation = getMapLocation(previousItem);
+
+        if (previousLocation) {
+          const routeUrl = googleMapsRouteUrl(previousLocation, currentLocation, travelMode);
+
+          routeButton = `
+            <a class="map-link route" href="${escapeHtml(routeUrl)}" target="_blank" rel="noopener noreferrer">
+              🧭 Route from Previous Stop
+            </a>
+          `;
+        }
+      }
+
+      return `
+        <a class="map-link" href="${escapeHtml(openLocationUrl)}" target="_blank" rel="noopener noreferrer">
+          📍 Open Location
+        </a>
+        ${routeButton}
+      `;
+    }
+
+    function renderPlaceCard(item) {
+      if (!item.placeName && !item.placeSearchQuery) {
+        return "";
+      }
+
+      const mapsUrl =
+        item.placeGoogleMapsUri ||
+        (item.placeName ? googleMapsSearchUrl(`${item.placeName} ${item.placeAddress || ""}`) : "") ||
+        (item.placeSearchQuery ? googleMapsSearchUrl(item.placeSearchQuery) : "");
+
+      const websiteLink = item.placeWebsiteUri
+        ? `<a class="map-link place" href="${escapeHtml(item.placeWebsiteUri)}" target="_blank" rel="noopener noreferrer">🌐 Website</a>`
+        : "";
+
+      const mapsLink = mapsUrl
+        ? `<a class="map-link place" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener noreferrer">⭐ Open Real Place</a>`
+        : "";
+
+      return `
+        <div class="place-card">
+          <div class="place-card-header">
+            <div>
+              <div class="place-name">${escapeHtml(item.placeName || "Recommended Place")}</div>
+              <div class="activity-meta">
+                ${item.placeAddress ? escapeHtml(item.placeAddress) : escapeHtml(item.placeSearchQuery || "")}
+              </div>
+            </div>
+            ${item.placeDataSource ? `<span class="place-source">Real Google Data</span>` : `<span class="place-source">Recommended</span>`}
+          </div>
+
+          <div class="place-grid">
+            <div class="place-mini">
+              <div class="place-mini-label">Rating</div>
+              <div class="place-mini-value">⭐ ${escapeHtml(formatRating(item.placeRating))}</div>
+            </div>
+
+            <div class="place-mini">
+              <div class="place-mini-label">Reviews</div>
+              <div class="place-mini-value">${escapeHtml(formatReviewCount(item.placeUserRatingCount))}</div>
+            </div>
+
+            <div class="place-mini">
+              <div class="place-mini-label">Price</div>
+              <div class="place-mini-value">${escapeHtml(formatPriceLevel(item.placePriceLevel))}</div>
+            </div>
+          </div>
+
+          ${item.whyRecommended ? `<div class="activity-meta"><strong>Why:</strong> ${escapeHtml(item.whyRecommended)}</div>` : ""}
+          ${item.signatureItem ? `<div class="activity-meta"><strong>Highlight:</strong> ${escapeHtml(item.signatureItem)}</div>` : ""}
+
+          <div class="small-actions">
+            ${mapsLink}
+            ${websiteLink}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDayMapButton(dayItems) {
+      const locations = dayItems.map((item) => getMapLocation(item)).filter(Boolean);
+
+      if (locations.length === 0) {
+        return `<span class="map-link disabled">No route locations</span>`;
+      }
+
+      const travelMode = inferGoogleTravelMode(dayItems.find((item) => item.transport)?.transport || "transit");
+      const dayRouteUrl = googleMapsDayRouteUrl(locations, travelMode);
+
+      return `
+        <a class="map-link day" href="${escapeHtml(dayRouteUrl)}" target="_blank" rel="noopener noreferrer">
+          🗺️ Open Day Route
+        </a>
+      `;
+    }
+
+    function encodeItem(item) {
+      return encodeURIComponent(JSON.stringify(item));
+    }
+
+    function editItineraryItemFromEncoded(encoded) {
+      const item = JSON.parse(decodeURIComponent(encoded));
+      editItineraryItem(item);
+    }
+
+    async function loadItinerary() {
+      if (!currentTripId) {
+        $("itineraryStatus").textContent = "Please select or generate a trip first.";
+        $("itineraryList").innerHTML = "";
+        renderItineraryTopSummary();
+        updatePdfLinks();
+        return;
+      }
+
+      renderItineraryTopSummary();
+      updatePdfLinks();
+      $("itineraryStatus").textContent = "Loading itinerary...";
+
+      try {
+        const response = await authFetch(`/api/itinerary/${currentTripId}`);
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to load itinerary.");
+
+        const items = data.items || [];
+        const grouped = {};
+
+        items.forEach((item) => {
+          const day = item.day || 1;
+          if (!grouped[day]) grouped[day] = [];
+          grouped[day].push(item);
+        });
+
+        $("itineraryList").innerHTML = Object.keys(grouped)
+          .sort((a, b) => Number(a) - Number(b))
+          .map((day) => {
+            const dayItems = grouped[day];
+
+            return `
+              <div class="day-block">
+                <div class="day-header">
+                  <div>
+                    <h3>Day ${day}</h3>
+                    <div class="map-note">
+                      Each activity can show real Google Places rating, reviews, address, price level, and Google Maps link.
+                    </div>
+                  </div>
+
+                  <div class="day-map-actions">
+                    <span class="pill">${dayItems.length} activities</span>
+                    <span class="real-data-pill">${dayItems.filter((item) => item.placeDataSource).length} real places</span>
+                    ${renderDayMapButton(dayItems)}
+                  </div>
+                </div>
+
+                ${dayItems
+                  .map((item, index) => {
+                    const previousItem = index > 0 ? dayItems[index - 1] : null;
+
+                    return `
+                      <div class="activity">
+                        <div class="activity-time">
+                          ${escapeHtml(item.startTime || "")}<br />
+                          ${escapeHtml(item.endTime || "")}
+                        </div>
+
+                        <div>
+                          <div class="activity-title">${escapeHtml(item.activity || "")}</div>
+
+                          <div>${escapeHtml(item.location || "")}</div>
+
+                          <div class="activity-meta">
+                            ${escapeHtml(item.transport || "")}
+                            ${item.estimatedTravelTime ? " · " + escapeHtml(item.estimatedTravelTime) : ""}
+                          </div>
+
+                          <div class="activity-meta">${escapeHtml(item.notes || "")}</div>
+
+                          ${renderPlaceCard(item)}
+
+                          <div class="small-actions">
+                            ${renderMapButtonsForItem(item, previousItem)}
+                          </div>
+
+                          <div class="small-actions">
+                            <button class="secondary" onclick="editItineraryItemFromEncoded('${encodeItem(item)}')">Edit</button>
+                            <button class="danger" onclick="deleteItineraryItem('${item._id}')">Delete</button>
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  })
+                  .join("")}
+              </div>
+            `;
+          })
+          .join("");
+
+        $("itineraryStatus").textContent =
+          items.length > 0 ? "Itinerary loaded with Google Maps route links and real place data." : "No itinerary items yet.";
+      } catch (error) {
+        console.error(error);
+        $("itineraryStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function regenerateItinerary() {
+      if (!currentTripId || !currentTrip) {
+        $("itineraryStatus").textContent = "Please select or generate a trip first.";
+        return;
+      }
+
+      const ok = confirm("Regenerate daily itinerary from the current trip information? Existing itinerary items will be replaced.");
+      if (!ok) return;
+
+      $("itineraryStatus").textContent = "Regenerating itinerary and fetching real place data...";
+
+      try {
+        const payload = {
+          ...(currentTrip.flightInfo || {}),
+          flightMode: currentTrip.flightMode || "estimated",
+          destination: currentTrip.destination || "",
+          prompt: currentTrip.prompt || "",
+        };
+
+        const response = await authFetch(`/api/trips/${currentTripId}/regenerate-itinerary`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || data.message || "Failed to regenerate itinerary.");
+        }
+
+        currentTrip.travelPlan = data.travelPlan;
+
+        renderTripSummary(data.travelPlan, currentTrip);
+        renderItineraryTopSummary();
+        updatePdfLinks();
+
+        await loadItinerary();
+
+        $("itineraryStatus").textContent = "Itinerary regenerated with real place data where available.";
+      } catch (error) {
+        console.error(error);
+        $("itineraryStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    function openItineraryModal() {
+      if (!currentTripId) {
+        alert("Please select or generate a trip first.");
+        return;
+      }
+
+      editingItineraryItemId = null;
+      $("modalTitle").textContent = "Add Activity";
+
+      $("modalDay").value = "1";
+      $("modalDate").value = "";
+      $("modalStartTime").value = "";
+      $("modalEndTime").value = "";
+      $("modalActivity").value = "";
+      $("modalLocation").value = "";
+      $("modalTransport").value = "";
+      $("modalTravelTime").value = "";
+      $("modalNotes").value = "";
+      $("modalPlaceName").value = "";
+      $("modalPlaceType").value = "";
+      $("modalPlaceSearchQuery").value = "";
+      $("modalWhyRecommended").value = "";
+      $("modalSignatureItem").value = "";
+
+      $("itineraryModal").classList.add("active");
+    }
+
+    function editItineraryItem(item) {
+      editingItineraryItemId = item._id;
+      $("modalTitle").textContent = "Edit Activity";
+
+      $("modalDay").value = item.day || 1;
+      $("modalDate").value = item.date || "";
+      $("modalStartTime").value = item.startTime || "";
+      $("modalEndTime").value = item.endTime || "";
+      $("modalActivity").value = item.activity || "";
+      $("modalLocation").value = item.location || "";
+      $("modalTransport").value = item.transport || "";
+      $("modalTravelTime").value = item.estimatedTravelTime || "";
+      $("modalNotes").value = item.notes || "";
+      $("modalPlaceName").value = item.placeName || "";
+      $("modalPlaceType").value = item.placeType || "";
+      $("modalPlaceSearchQuery").value = item.placeSearchQuery || "";
+      $("modalWhyRecommended").value = item.whyRecommended || "";
+      $("modalSignatureItem").value = item.signatureItem || "";
+
+      $("itineraryModal").classList.add("active");
+    }
+
+    function closeItineraryModal() {
+      $("itineraryModal").classList.remove("active");
+    }
+
+    async function saveItineraryItem() {
+      if (!currentTripId) return;
+
+      const payload = {
+        day: $("modalDay").value,
+        date: $("modalDate").value,
+        startTime: $("modalStartTime").value,
+        endTime: $("modalEndTime").value,
+        activity: $("modalActivity").value,
+        location: $("modalLocation").value,
+        transport: $("modalTransport").value,
+        estimatedTravelTime: $("modalTravelTime").value,
+        notes: $("modalNotes").value,
+        placeName: $("modalPlaceName").value,
+        placeType: $("modalPlaceType").value,
+        placeSearchQuery: $("modalPlaceSearchQuery").value,
+        whyRecommended: $("modalWhyRecommended").value,
+        signatureItem: $("modalSignatureItem").value,
+      };
+
+      try {
+        const url = editingItineraryItemId
+          ? `/api/itinerary/item/${editingItineraryItemId}`
+          : `/api/itinerary/${currentTripId}`;
+
+        const method = editingItineraryItemId ? "PUT" : "POST";
+
+        const response = await authFetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to save activity.");
+
+        closeItineraryModal();
+        await loadItinerary();
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    }
+
+    async function deleteItineraryItem(itemId) {
+      const ok = confirm("Delete this activity?");
+      if (!ok) return;
+
+      try {
+        const response = await authFetch(`/api/itinerary/item/${itemId}`, {
+          method: "DELETE",
+        });
+
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to delete activity.");
+
+        await loadItinerary();
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    }
+
+    function parseExpenseText() {
+      const text = $("expenseQuickImport").value;
+
+      const getValue = (label) => {
+        const regex = new RegExp(label + "\\s*:\\s*(.+)", "i");
+        const match = text.match(regex);
+        return match ? match[1].trim() : "";
+      };
+
+      $("expenseDescription").value = getValue("Description") || $("expenseDescription").value;
+      $("expenseAmount").value = getValue("Amount") || $("expenseAmount").value;
+
+      const parsedCurrency = getValue("Currency");
+      if (parsedCurrency && currencies.includes(parsedCurrency.toUpperCase())) {
+        $("expenseCurrency").value = parsedCurrency.toUpperCase();
+      }
+
+      $("expensePaidBy").value = getValue("Paid by") || $("expensePaidBy").value;
+      $("expenseSharedWith").value = getValue("Shared with") || $("expenseSharedWith").value;
+      $("expenseCategory").value = getValue("Category") || $("expenseCategory").value;
+      $("expenseDate").value = getValue("Date") || $("expenseDate").value;
+      $("expenseLocation").value = getValue("Location") || $("expenseLocation").value;
+
+      $("expenseStatus").textContent = "Expense text parsed. Please review and save.";
+    }
+
+    async function previewConversion() {
+      const amount = Number($("expenseAmount").value) || 0;
+      const from = $("expenseCurrency").value || "USD";
+      const to = $("baseCurrency").value || "USD";
+
+      if (!amount) {
+        $("expenseStatus").textContent = "Please enter an amount first.";
+        return;
+      }
+
+      $("expenseStatus").textContent = "Checking exchange rate...";
+
+      try {
+        const response = await authFetch(`/api/exchange-rate?amount=${encodeURIComponent(amount)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || data.message || "Failed to convert.");
+        }
+
+        $("expenseStatus").textContent =
+          `${money(data.amount)} ${data.from} ≈ ${money(data.convertedAmount)} ${data.to} · Rate: ${Number(data.exchangeRate).toFixed(6)} · ${data.rateDate}`;
+      } catch (error) {
+        console.error(error);
+        $("expenseStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function addExpense() {
+      if (!currentTripId) {
+        $("expenseStatus").textContent = "Please select or generate a trip first.";
+        return;
+      }
+
+      const payload = {
+        tripId: currentTripId,
+        description: $("expenseDescription").value,
+        amount: $("expenseAmount").value,
+        currency: $("expenseCurrency").value || "USD",
+        baseCurrency: $("baseCurrency").value || "USD",
+        paidBy: $("expensePaidBy").value,
+        sharedWith: $("expenseSharedWith").value,
+        category: $("expenseCategory").value,
+        date: $("expenseDate").value,
+        location: $("expenseLocation").value,
+      };
+
+      if (!payload.description || !payload.amount || !payload.paidBy) {
+        $("expenseStatus").textContent = "Please enter description, amount, and paid by.";
+        return;
+      }
+
+      $("expenseStatus").textContent = "Saving expense and converting currency...";
+
+      try {
+        const response = await authFetch("/api/add-expense", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.error || data.message || "Failed to add expense.");
+
+        $("expenseStatus").textContent =
+          `Expense saved. ${money(data.expense.amount)} ${data.expense.currency} ≈ ${money(data.expense.convertedAmount)} ${data.expense.baseCurrency}`;
+
+        await loadExpenses();
+      } catch (error) {
+        console.error(error);
+        $("expenseStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function loadExpenses() {
+      if (!currentTripId) {
+        $("expenseStatus").textContent = "Please select or generate a trip first.";
+        $("expenseList").innerHTML = "";
+        return;
+      }
+
+      try {
+        const response = await authFetch(`/api/expenses/${currentTripId}`);
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to load expenses.");
+
+        const expenses = data.expenses || [];
+
+        $("expenseList").innerHTML = expenses
+          .map(
+            (expense) => `
+              <div class="expense-card">
+                <strong>${escapeHtml(expense.description || "")}</strong>
+                <p class="expense-money">
+                  Original: ${money(expense.amount)} ${escapeHtml(expense.currency || "USD")}
+                </p>
+                <p class="converted-money">
+                  Converted: ${money(expense.convertedAmount || expense.amount)} ${escapeHtml(expense.baseCurrency || expense.currency || "USD")}
+                </p>
+                <p class="activity-meta">
+                  Paid by ${escapeHtml(expense.paidBy || "")}<br />
+                  Shared with: ${escapeHtml((expense.sharedWith || []).join(", "))}<br />
+                  ${escapeHtml(expense.category || "")} · ${escapeHtml(expense.location || "")}<br />
+                  Rate: 1 ${escapeHtml(expense.currency || "USD")} =
+                  ${Number(expense.exchangeRate || 1).toFixed(6)}
+                  ${escapeHtml(expense.baseCurrency || expense.currency || "USD")}
+                  · ${escapeHtml(expense.rateDate || "")}
+                </p>
+                <button class="danger" onclick="deleteExpense('${expense._id}')">Delete</button>
+              </div>
+            `
+          )
+          .join("");
+
+        $("expenseStatus").textContent = expenses.length > 0 ? "Expenses loaded." : "No expenses yet.";
+      } catch (error) {
+        console.error(error);
+        $("expenseStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function deleteExpense(expenseId) {
+      const ok = confirm("Delete this expense?");
+      if (!ok) return;
+
+      try {
+        await authFetch(`/api/expenses/${expenseId}`, { method: "DELETE" });
+        await loadExpenses();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function loadSettlementIfVisible() {
+      const settlementPanelActive = $("settlementPanel")?.classList.contains("active");
+      const base = $("baseCurrency")?.value || "USD";
+
+      if ($("settlementCurrency")) $("settlementCurrency").value = base;
+      if (settlementPanelActive) loadSettlement();
+    }
+
+    async function loadSettlement() {
+      if (!currentTripId) {
+        $("settlementStatus").textContent = "Please select or generate a trip first.";
+        $("settlementResult").innerHTML = "";
+        return;
+      }
+
+      const baseCurrency = $("settlementCurrency").value || $("baseCurrency").value || "USD";
+
+      if ($("baseCurrency")) $("baseCurrency").value = baseCurrency;
+
+      $("settlementStatus").textContent = "Calculating settlement with currency conversion...";
+
+      try {
+        const response = await authFetch(`/api/settlement/${currentTripId}?baseCurrency=${encodeURIComponent(baseCurrency)}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || data.message || "Failed to calculate settlement.");
+        }
+
+        const settlements = data.settlements || [];
+        const balances = data.balances || {};
+
+        $("settlementResult").innerHTML = `
+          <div class="result-card">
+            <h3>Settlement Currency: ${escapeHtml(data.baseCurrency || baseCurrency)}</h3>
+            <p class="helper-text">All expenses are calculated in ${escapeHtml(data.baseCurrency || baseCurrency)}.</p>
+          </div>
+
+          <div class="result-card">
+            <h3>Balances</h3>
+            ${
+              Object.keys(balances).length === 0
+                ? "<p>No balances yet.</p>"
+                : Object.entries(balances)
+                    .map(([person, amount]) => `<p>${escapeHtml(person)}: ${money(amount)} ${escapeHtml(data.baseCurrency || baseCurrency)}</p>`)
+                    .join("")
+            }
+          </div>
+
+          <div class="result-card">
+            <h3>Who Owes Whom</h3>
+            ${
+              settlements.length === 0
+                ? "<p>Everyone is settled.</p>"
+                : settlements
+                    .map(
+                      (s) => `
+                        <p>
+                          <strong>${escapeHtml(s.from)}</strong> pays
+                          <strong>${escapeHtml(s.to)}</strong>
+                          ${money(s.amount)} ${escapeHtml(s.currency || data.baseCurrency || baseCurrency)}
+                        </p>
+                      `
+                    )
+                    .join("")
+            }
+          </div>
+        `;
+
+        $("settlementStatus").textContent = "Settlement calculated.";
+      } catch (error) {
+        console.error(error);
+        $("settlementStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function saveCurrentTripAsTemplate() {
+      if (!currentTripId) {
+        $("templateStatus").textContent = "Please select or generate a trip first.";
+        return;
+      }
+
+      const title = prompt("Template title:", currentTrip?.title || "Community Trip Template");
+      if (!title) return;
+
+      try {
+        const response = await authFetch(`/api/templates/from-trip/${currentTripId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to save template.");
+
+        $("templateStatus").textContent = "Template saved.";
+        await loadTemplates();
+      } catch (error) {
+        console.error(error);
+        $("templateStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function loadTemplates() {
+      try {
+        const response = await authFetch("/api/templates");
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to load templates.");
+
+        const templates = data.templates || [];
+
+        $("templateList").innerHTML = templates
+          .map(
+            (template) => `
+              <div class="template-card">
+                <h3>${escapeHtml(template.title || "Untitled Template")}</h3>
+                <p>${escapeHtml(template.destination || "")}</p>
+                <p>${escapeHtml(template.summary || "")}</p>
+                <button class="primary" onclick="useTemplate('${template._id}')">Use Template</button>
+              </div>
+            `
+          )
+          .join("");
+
+        $("templateStatus").textContent = templates.length > 0 ? "Templates loaded." : "No templates yet.";
+      } catch (error) {
+        console.error(error);
+        $("templateStatus").textContent = "Error: " + error.message;
+      }
+    }
+
+    async function useTemplate(templateId) {
+      try {
+        const response = await authFetch(`/api/templates/${templateId}/use`, {
+          method: "POST",
+        });
+
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to use template.");
+
+        currentTripId = data.tripId;
+        currentTrip = data.trip;
+
+        updatePdfLinks();
+        renderTripSummary(currentTrip.travelPlan, currentTrip);
+        renderItineraryTopSummary();
+
+        await loadTrips();
+        await loadItinerary();
+
+        showPanel("planPanel");
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    }
+
+    function fillConfirmedExample() {
+      setFlightMode("confirmed");
+
+      $("flightNumber").value = "AA169";
+      $("flightDate").value = "2026-07-10";
+      $("confirmedDestination").value = "Tokyo";
+      $("confirmedHotelArea").value = "Shinjuku";
+      $("confirmedPrompt").value =
+        "I want a relaxed food-focused trip. Please keep the first day light because I may be tired after the flight.";
+
+      $("origin").value = "Los Angeles / LAX";
+      $("travelers").value = "Alex, Emma";
+      $("budget").value = "medium";
+      $("travelStyle").value = "balanced";
+      $("pace").value = "medium";
+      $("foodPreference").value = "ramen, sushi, local cafes";
+      $("mustSee").value = "Shibuya, Asakusa, teamLab";
+      $("avoid").value = "too rushed schedule";
+    }
+
+    function fillEstimatedExample() {
+      setFlightMode("estimated");
+
+      $("estimatedDestination").value = "London";
+      $("startDate").value = "2026-08-05";
+      $("tripDays").value = "5";
+      $("estimatedHotelArea").value = "Near Westminster";
+      $("estimatedPrompt").value =
+        "First-time visitor. I want a flexible plan with museums, local food, and not too much walking.";
+
+      $("origin").value = "Los Angeles";
+      $("travelers").value = "Alex, Emma";
+      $("budget").value = "medium";
+      $("travelStyle").value = "culture and history";
+      $("pace").value = "medium";
+      $("foodPreference").value = "local food, cafes, markets";
+      $("mustSee").value = "British Museum, Westminster, Tower Bridge";
+      $("avoid").value = "too many paid attractions";
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      setAuthMode("login");
+      await checkExistingLogin();
+    });
+  </script>
+</body>
+</html>
