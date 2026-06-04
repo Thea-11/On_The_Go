@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TravelSplit AI</title>
+  <title>On The Go</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
@@ -790,7 +790,7 @@
 <body>
   <section id="authScreen" class="auth-screen">
     <div class="auth-card">
-      <h1>TravelSplit AI</h1>
+      <h1>On The Go</h1>
       <p>Sign in to save trips, itineraries, expenses, projects, shares, and collaborators under your own account.</p>
 
       <div class="auth-tabs">
@@ -823,8 +823,8 @@
 
   <div id="appScreen" class="app hidden">
     <aside class="sidebar">
-      <h1>TravelSplit AI</h1>
-      <p>AI trip planning + itinerary + expenses</p>
+      <h1>On The Go</h1>
+      <p>AI trip planning + itinerary + expense splitting</p>
 
       <div class="user-box">
         <strong id="sidebarUserName">Signed in</strong>
@@ -1393,15 +1393,15 @@ Location: Tokyo"></textarea>
     }
 
     function getToken() {
-      return localStorage.getItem("travelsplit_token") || "";
+      return localStorage.getItem("onthego_token") || "";
     }
 
     function setToken(token) {
-      localStorage.setItem("travelsplit_token", token);
+      localStorage.setItem("onthego_token", token);
     }
 
     function clearToken() {
-      localStorage.removeItem("travelsplit_token");
+      localStorage.removeItem("onthego_token");
     }
 
     async function authFetch(url, options = {}) {

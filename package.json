@@ -1,7 +1,7 @@
 {
-  "name": "travel_agent",
+  "name": "on-the-go",
   "version": "1.0.0",
-  "description": "TravelSplit AI - AI trip planner and expense splitter",
+  "description": "On The Go - AI trip planner and expense splitter",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
