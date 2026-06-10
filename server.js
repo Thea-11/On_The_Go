@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ObjectId } = require("mongodb");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -18,7 +18,11 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
 
 const client = new MongoClient(process.env.MONGODB_URI);
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3-flash-preview";
 
 let db;
 let usersCollection;
@@ -593,13 +597,6 @@ Important rules:
 }
 
 async function generateTripWithAI(data) {
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash-lite",
-    generationConfig: {
-      responseMimeType: "application/json",
-    },
-  });
-
   const flightContext = createFlightContext(data);
 
   const prompt = `
@@ -708,8 +705,15 @@ Daily itinerary requirements:
 - Every activity must include recommendedPlace.searchQuery.
 `;
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
+  const response = await ai.models.generateContent({
+    model: GEMINI_MODEL,
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+    },
+  });
+
+  const text = response.text || "";
   const parsed = extractJson(text);
 
   if (!parsed) {
@@ -3052,6 +3056,10 @@ app.get("/share-trip/:shareToken", async (req, res) => {
    START SERVER
 ========================= */
 
+/* =========================
+   START SERVER
+========================= */
+
 async function startServer() {
   try {
     await client.connect();
@@ -3090,6 +3098,7 @@ async function startServer() {
 
     console.log("Connected to MongoDB!");
     console.log("Using database:", db.databaseName);
+    console.log("Using Gemini model:", GEMINI_MODEL);
     console.log(
       GOOGLE_PLACES_API_KEY
         ? "Google Places API key loaded."
